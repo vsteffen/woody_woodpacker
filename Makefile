@@ -25,8 +25,8 @@ OBJ = $(patsubst %.c, $(OPATH)/%.o, $(SRC))
 
 CFLAGS = -Wall -Wextra -Werror -g
 
-ifeq ($(no-asm),y)
-	NO-ASM:= no-asm
+ifeq ($(with-asm),y)
+	WITH-ASM:= with-asm
 endif
 
 LIB	=	$(ROOT)/lib
@@ -86,8 +86,7 @@ all: $(NAME)
 
 $(PRE_CHECK_SUB):
 	@echo $(PROJECT)": Init submodule $(dir $@) ... "
-	@$(GIT) submodule init > /dev/null  # can't directly redirect stdout on /dev/null cause of sync wait on Linux
-	@$(GIT) submodule update --recursive --remote > /dev/null
+	@$(GIT) submodule update --init --recursive > /dev/null  # can't directly redirect stdout on /dev/null cause of sync wait on Linux
 	@printf $(PROJECT)": $(dir $@) "
 	@$(call PRINT_STATUS,INITIALIZED,SUCCESS)
 
@@ -95,9 +94,9 @@ $(PRE_CHECK_LIB): $(PRE_CHECK_SUB)
 	echo $(PROJECT)": Compile $@ ... " ; \
 	if [ $@ = $(PRE_CHECK_LIB_LIBFT) ] ; then \
 		if [ $(OS) = "Darwin" ] ; then \
-			$(MAKE) -C $(LIBFT) $(NO-ASM) -j$(NPROCS) > /dev/null ; \
+			$(MAKE) -C $(LIBFT) $(WITH-ASM) -j$(NPROCS) > /dev/null ; \
 		else \
-			$(MAKE) -C $(LIBFT) no-asm -j$(NPROCS) ; \
+			$(MAKE) -C $(LIBFT) -j$(NPROCS) ; \
 		fi; \
 	else \
 		echo "Other libraries here" ; \
@@ -144,6 +143,6 @@ lib-clean:
 
 lib-update:
 	echo $(PROJECT)": Update submodules ... "
-	$(GIT) submodule update --recursive --remote > /dev/null
+	$(GIT) submodule update --init --recursive --remote > /dev/null
 	printf $(PROJECT)": submodules "
 	$(call PRINT_STATUS,UPDATED,SUCCESS)
