@@ -39,7 +39,9 @@ CPATH 	=	$(ROOT)/srcs
 LPATH	=	$(LIBFT)/libft.a
 HPATH 	=	-I $(ROOT)/includes -I $(LIBFT)/includes
 
-SRC =	woody_woodpacker.c
+SRC =	woody_woodpacker.c \
+	debug.c \
+	elf.c
 
 PRE_CHECK_SUB_LIBFT	:= $(LIBFT)/Makefile
 PRE_CHECK_SUB		:= $(PRE_CHECK_SUB_LIBFT)
