@@ -1,6 +1,6 @@
 #include "woody_woodpacker.h"
 
-void	clean_exit(struct s_woody *woody, int exit_status) {
+void	exit_clean(struct s_woody *woody, int exit_status) {
 	close(woody->fd);
 	if (munmap(woody->map_elf_file, woody->st_size) == -1)
 		ERROR("munmap");
@@ -48,7 +48,7 @@ int	main(int ac, char **av)
 	if (!read_elf_header(&woody))
 		return (EXIT_FAILURE);
 
-	debug_print_all_segments(&woody);
+	debug_print_program_headers(&woody);
 
-	clean_exit(&woody, EXIT_SUCCESS);
+	exit_clean(&woody, EXIT_SUCCESS);
 }

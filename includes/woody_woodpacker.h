@@ -19,6 +19,25 @@
 
 typedef enum {false, true} bool;
 
+typedef enum {E_BIG_ENDIAN, E_LITTLE_ENDIAN} e_endian;
+
+typedef struct	s_woody {
+	int		fd;
+	size_t		st_size;
+	void		*map_elf_file;
+	Elf64_Ehdr	ehdr;
+	e_endian	endian;
+}		t_woody;
+
+
+void	exit_clean(struct s_woody *woody, int exit_status);
+
+bool	read_elf_header(struct s_woody *woody);
+
+// DEBUG
+void	debug_print_program_headers(struct s_woody *woody);
+
+
 /*
 ##########################
 
@@ -60,22 +79,5 @@ typedef struct {
 
 ##########################
 */
-
-typedef enum {E_BIG_ENDIAN, E_LITTLE_ENDIAN} e_endian;
-
-typedef struct	s_woody {
-	int		fd;
-	size_t		st_size;
-	void		*map_elf_file;
-	Elf64_Ehdr	ehdr;
-	e_endian	endian;
-}		t_woody;
-
-
-bool	read_elf_header(struct s_woody *woody);
-
-// DEBUG
-void	debug_print_all_segments(struct s_woody *woody);
-
 
 #endif
