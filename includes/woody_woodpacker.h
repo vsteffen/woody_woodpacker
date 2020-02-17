@@ -2,6 +2,7 @@
 # define WOODY_WOODPACKER_H
 
 # include "libft.h"
+# include "tools.h"
 
 # include <elf.h>
 
@@ -10,32 +11,37 @@
 # include <sys/stat.h>
 # include <errno.h>
 
-# define STR_IMPL_(x) #x
-# define STR(x) STR_IMPL_(x)
-# define ERROR_STR(x) __FILE__ ":" STR(__LINE__) ": " x
-# define ERROR(x) perror(ERROR_STR(x))
-
 # define USAGE "Usage: woody_woodpacker elf_file [key]\n"
 
 typedef enum {false, true} bool;
-
-typedef enum {E_BIG_ENDIAN, E_LITTLE_ENDIAN} e_endian;
 
 typedef struct	s_woody {
 	int		fd;
 	size_t		st_size;
 	void		*map_elf_file;
 	Elf64_Ehdr	ehdr;
-	e_endian	endian;
+	bool		reverse_endian;
 }		t_woody;
 
 
 void	exit_clean(struct s_woody *woody, int exit_status);
 
-bool	read_elf_header(struct s_woody *woody);
+void	check_headers_offset(struct s_woody *woody);
+
+const char	*get_phdr_type_str(uint32_t p_type);
+const char	*get_phdr_flags_str(uint32_t flags, char buff[4]);
+const char	*get_ehdr_type_str(uint16_t e_type);
+const char	*get_shdr_type_str(uint32_t sh_type);
+void		get_section_name_string_table(struct s_woody *woody, Elf64_Shdr *sh_strtab);
+
+void	read_elf_header(struct s_woody *woody);
+void	read_program_header(struct s_woody *woody, uint16_t index, Elf64_Phdr *phdr);
+void	read_section_header(struct s_woody *woody, uint16_t index, Elf64_Shdr *shdr);
 
 // DEBUG
-void	debug_print_program_headers(struct s_woody *woody);
+void	debug_print_headers(struct s_woody *woody);
+void	debug_print_program_header(struct s_woody *woody);
+void	debug_print_section_header(struct s_woody *woody);
 
 
 /*
@@ -76,6 +82,23 @@ typedef struct {
 	uint64_t   p_memsz;
 	uint64_t   p_align;
 } Elf64_Phdr;
+
+##########################
+
+\-----> Elf Section Header
+
+typedef struct {
+	uint32_t   sh_name;
+	uint32_t   sh_type;
+	uint64_t   sh_flags;
+	Elf64_Addr sh_addr;
+	Elf64_Off  sh_offset;
+	uint64_t   sh_size;
+	uint32_t   sh_link;
+	uint32_t   sh_info;
+	uint64_t   sh_addralign;
+	uint64_t   sh_entsize;
+} Elf64_Shdr;
 
 ##########################
 */

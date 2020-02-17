@@ -45,10 +45,9 @@ int	main(int ac, char **av)
 
 	if (!map_file(av[1], &woody))
 		return (EXIT_FAILURE);
-	if (!read_elf_header(&woody))
-		return (EXIT_FAILURE);
-
-	debug_print_program_headers(&woody);
+	read_elf_header(&woody);
+	check_headers_offset(&woody);
+	debug_print_headers(&woody);
 
 	exit_clean(&woody, EXIT_SUCCESS);
 }

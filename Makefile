@@ -41,7 +41,8 @@ HPATH 	=	-I $(ROOT)/includes -I $(LIBFT)/includes
 
 SRC =	woody_woodpacker.c \
 	debug.c \
-	elf.c
+	elf.c \
+	elf_read.c \
 
 PRE_CHECK_SUB_LIBFT	:= $(LIBFT)/Makefile
 PRE_CHECK_SUB		:= $(PRE_CHECK_SUB_LIBFT)
