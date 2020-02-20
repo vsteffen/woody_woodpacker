@@ -47,7 +47,10 @@ int	main(int ac, char **av)
 		return (EXIT_FAILURE);
 	read_elf_header(&woody);
 	check_headers_offset(&woody);
-	debug_print_headers(&woody);
+	get_shstrtab(&woody);
+	insert_section_after_bss(&woody);
+
+	// debug_print_headers(&woody);
 
 	exit_clean(&woody, EXIT_SUCCESS);
 }

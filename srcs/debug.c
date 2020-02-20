@@ -71,8 +71,6 @@ void	debug_print_program_header(struct s_woody *woody) {
 
 void	debug_print_section_header(struct s_woody *woody) {
 	Elf64_Shdr shdr;
-	Elf64_Shdr sh_strtab;
-	get_section_name_string_table(woody, &sh_strtab);
 
 	printf("There are %hu section headers, starting at offset %#lx:\n\n", woody->ehdr.e_shnum, woody->ehdr.e_shoff);
 	printf("Section Headers:\n");
@@ -80,7 +78,7 @@ void	debug_print_section_header(struct s_woody *woody) {
 	printf("       Size              EntSize          Flags  Link  Info  Align\n");
 	for (uint16_t i = 0; i < woody->ehdr.e_shnum; i++) {
 		read_section_header(woody, i, &shdr);
-		printf("  [%2hu] %-16s  %-16s %016lx  %08lx\n", i, woody->map_elf_file + sh_strtab.sh_offset + shdr.sh_name, get_shdr_type_str(shdr.sh_type), shdr.sh_addr, shdr.sh_offset);
+		printf("  [%2hu] %-16s  %-16s %016lx  %08lx\n", i, woody->map_elf_file + woody->shstrtab.sh_offset + shdr.sh_name, get_shdr_type_str(shdr.sh_type), shdr.sh_addr, shdr.sh_offset);
 		printf("       %016lx  %016lx   ?       %-5u %-5u %-lu\n", shdr.sh_size, shdr.sh_entsize, shdr.sh_link, shdr.sh_info, shdr.sh_addralign);
 	}
 }

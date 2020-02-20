@@ -20,6 +20,7 @@ typedef struct	s_woody {
 	size_t		st_size;
 	void		*map_elf_file;
 	Elf64_Ehdr	ehdr;
+	Elf64_Shdr	shstrtab;
 	bool		reverse_endian;
 }		t_woody;
 
@@ -32,11 +33,13 @@ const char	*get_phdr_type_str(uint32_t p_type);
 const char	*get_phdr_flags_str(uint32_t flags, char buff[4]);
 const char	*get_ehdr_type_str(uint16_t e_type);
 const char	*get_shdr_type_str(uint32_t sh_type);
-void		get_section_name_string_table(struct s_woody *woody, Elf64_Shdr *sh_strtab);
+void		get_shstrtab(struct s_woody *woody);
 
 void	read_elf_header(struct s_woody *woody);
 void	read_program_header(struct s_woody *woody, uint16_t index, Elf64_Phdr *phdr);
 void	read_section_header(struct s_woody *woody, uint16_t index, Elf64_Shdr *shdr);
+
+void		insert_section_after_bss(struct s_woody *woody);
 
 // DEBUG
 void	debug_print_headers(struct s_woody *woody);
