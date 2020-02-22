@@ -78,7 +78,7 @@ void	debug_print_section_header(struct s_woody *woody) {
 	printf("       Size              EntSize          Flags  Link  Info  Align\n");
 	for (uint16_t i = 0; i < woody->ehdr.e_shnum; i++) {
 		read_section_header(woody, i, &shdr);
-		printf("  [%2hu] %-16s  %-16s %016lx  %08lx\n", i, woody->map_elf_file + woody->shstrtab.sh_offset + shdr.sh_name, get_shdr_type_str(shdr.sh_type), shdr.sh_addr, shdr.sh_offset);
+		printf("  [%2hu] %-16s  %-16s %016lx  %08lx\n", i, woody->bin_map + woody->shstrtab.sh_offset + shdr.sh_name, get_shdr_type_str(shdr.sh_type), shdr.sh_addr, shdr.sh_offset);
 		printf("       %016lx  %016lx   ?       %-5u %-5u %-lu\n", shdr.sh_size, shdr.sh_entsize, shdr.sh_link, shdr.sh_info, shdr.sh_addralign);
 	}
 }
@@ -86,6 +86,8 @@ void	debug_print_section_header(struct s_woody *woody) {
 void	debug_print_headers(struct s_woody *woody) {
 	printf("Elf file type is %s\n", get_ehdr_type_str(woody->ehdr.e_type));
 	printf("Entry point %#lx\n\n", woody->ehdr.e_entry);
+	printf("e_shoff = %zu\n", woody->ehdr.e_shoff);
+	printf("e_shstrndx = %hu\n", woody->ehdr.e_shstrndx);
 	debug_print_program_header(woody);
 	printf("\n\n\n");
 	debug_print_section_header(woody);

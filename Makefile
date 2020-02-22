@@ -23,7 +23,7 @@ GIT	=	/usr/bin/git
 
 OBJ = $(patsubst %.c, $(OPATH)/%.o, $(SRC))
 
-CFLAGS = -Wall -Wextra -Werror -g
+CFLAGS = -Wall -Wextra -Werror -g -fsanitize=address
 
 ifeq ($(with-asm),y)
 	WITH-ASM:= with-asm
@@ -43,6 +43,9 @@ SRC =	woody_woodpacker.c \
 	debug.c \
 	elf.c \
 	elf_read.c \
+	elf_write.c \
+	elf_modify.c \
+	elf_save.c
 
 PRE_CHECK_SUB_LIBFT	:= $(LIBFT)/Makefile
 PRE_CHECK_SUB		:= $(PRE_CHECK_SUB_LIBFT)

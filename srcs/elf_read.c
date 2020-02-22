@@ -1,11 +1,11 @@
 #include "woody_woodpacker.h"
 
 void	read_elf_header(struct s_woody *woody) {
-	if (woody->st_size < sizeof(Elf64_Ehdr)) {
+	if ((size_t)woody->bin_st.st_size < sizeof(Elf64_Ehdr)) {
 		dprintf(STDERR_FILENO, "woody_woodpacker: not an ELF file (file too small to contain ELF header)\n");
 		exit_clean(woody, EXIT_FAILURE);
 	}
-	woody->ehdr = *(Elf64_Ehdr *)woody->map_elf_file;
+	woody->ehdr = *(Elf64_Ehdr *)woody->bin_map;
 
 	if (*(uint32_t *)woody->ehdr.e_ident != *(uint32_t *)ELFMAG) {
 		dprintf(STDERR_FILENO, "woody_woodpacker: not an ELF file (wrong magic number)\n");
@@ -52,7 +52,7 @@ void	read_elf_header(struct s_woody *woody) {
 }
 
 void	read_program_header(struct s_woody *woody, uint16_t index, Elf64_Phdr *phdr) {
-	*phdr = *(Elf64_Phdr *)(woody->map_elf_file + woody->ehdr.e_phoff + woody->ehdr.e_phentsize * index);
+	*phdr = *(Elf64_Phdr *)(woody->bin_map + woody->ehdr.e_phoff + woody->ehdr.e_phentsize * index);
 	if (woody->reverse_endian) {
 		phdr->p_type	= BSWAP32(phdr->p_type);
 		phdr->p_flags	= BSWAP32(phdr->p_flags);
@@ -66,7 +66,7 @@ void	read_program_header(struct s_woody *woody, uint16_t index, Elf64_Phdr *phdr
 }
 
 void	read_section_header(struct s_woody *woody, uint16_t index, Elf64_Shdr *shdr) {
-	*shdr = *(Elf64_Shdr *)(woody->map_elf_file + woody->ehdr.e_shoff + woody->ehdr.e_shentsize * index);
+	*shdr = *(Elf64_Shdr *)(woody->bin_map + woody->ehdr.e_shoff + woody->ehdr.e_shentsize * index);
 	if (woody->reverse_endian) {
 		shdr->sh_name		= BSWAP32(shdr->sh_name);
 		shdr->sh_type		= BSWAP32(shdr->sh_type);
