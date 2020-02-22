@@ -13,6 +13,8 @@
 PROJECT	= woody_woodpacker
 NAME	= woody_woodpacker
 
+NEW_BIN	= woody
+
 CC 	=	/usr/bin/clang
 RM 	=	/bin/rm
 MAKE 	=	/usr/bin/make
@@ -134,6 +136,7 @@ clean:
 
 fclean: clean
 	$(RM) -f $(NAME)
+	$(RM) -f $(NEW_BIN)
 	echo $(PROJECT)": executable clean"
 	printf $(PROJECT)": $@ rule "
 	$(call PRINT_STATUS,DONE,SUCCESS)

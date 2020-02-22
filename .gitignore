@@ -1,5 +1,6 @@
 *.o
 /woody_woodpacker
+/woody
 *.dSYM
 a.out
 *.a
