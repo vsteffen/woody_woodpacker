@@ -22,6 +22,9 @@ MKDIR 	=	/bin/mkdir -p
 AR 	=	/usr/bin/ar
 RANLIB 	=	/usr/bin/ranlib
 GIT	=	/usr/bin/git
+NASM	=	/usr/bin/nasm
+OBJCOPY	=	/usr/bin/objcopy
+HEXDUMP	=	/usr/bin/hexdump
 
 OBJ = $(patsubst %.c, $(OPATH)/%.o, $(SRC))
 
@@ -49,10 +52,15 @@ SRC =	woody_woodpacker.c \
 	elf_modify.c \
 	elf_save.c
 
+ASMPATH		= $(ROOT)/asm
+ASM_SRC		= $(ASMPATH)/unpacker.asm
+ASM_OBJ		= $(ASMPATH)/unpacker.o
+ASM_BYTECODE	= $(ASMPATH)/bytecode
+
 PRE_CHECK_SUB_LIBFT	:= $(LIBFT)/Makefile
 PRE_CHECK_SUB		:= $(PRE_CHECK_SUB_LIBFT)
 
-PRE_CHECK_LIB_LIBFT := $(LIBFT)/libft.a
+PRE_CHECK_LIB_LIBFT 	:= $(LIBFT)/libft.a
 PRE_CHECK_LIB		:= $(PRE_CHECK_LIB_LIBFT) $(PRE_CHECK_LIB_LULZ)
 
 COMPILE	= no
@@ -88,7 +96,7 @@ define PRINT_STATUS
 endef
 
 .PHONY: all clean fclean re lib-clean lib-update
-.SILENT: $(PRE_CHECK_SUB) $(PRE_CHECK_LIB) $(NAME) $(OPATH) $(OPATH)/%.o clean fclean re lib-clean lib-update
+.SILENT: $(PRE_CHECK_SUB) $(PRE_CHECK_LIB) $(NAME) $(OPATH) $(ASM_OBJ) $(OPATH)/%.o clean fclean re lib-clean lib-update
 
 all: $(NAME)
 
@@ -112,7 +120,12 @@ $(PRE_CHECK_LIB): $(PRE_CHECK_SUB)
 	printf $(PROJECT)": $@ " ; \
 	$(call PRINT_STATUS,COMPILED,SUCCESS) ;
 
-$(NAME): $(PRE_CHECK_LIB) $(OPATH) $(OBJ)
+
+$(ASM_OBJ):
+	$(NASM) -f elf64 $(ASM_SRC) -o $(ASM_OBJ)
+	$(OBJCOPY) -O binary -j .text $(ASM_OBJ) $(ASM_BYTECODE)
+
+$(NAME): $(PRE_CHECK_LIB) $(ASM_OBJ) $(OPATH) $(OBJ)
 	$(if $(filter $(COMPILE),yes),echo ']')
 	printf $(PROJECT)": Building $@ ... "
 	$(CC) -o $@ $(CFLAGS) $(OBJ) $(LPATH) $(HPATH)
@@ -121,7 +134,7 @@ $(NAME): $(PRE_CHECK_LIB) $(OPATH) $(OBJ)
 $(OPATH)/%.o: $(CPATH)/%.c | $(PRE_CHECK_LIB)
 	$(if $(filter $(COMPILE),no),@printf $(PROJECT)': Files compiling [')
 	$(eval COMPILE := yes)
-	@$(CC) $(CFLAGS) -c $< -o $@ $(HPATH)
+	@$(CC) $(CFLAGS) -c $< -o $@ $(HPATH) -DBYTECODE=\"`$(HEXDUMP) -v -e '"\\\\x" 1/1 "%02X"' $(ASM_BYTECODE)`\"
 	@$(call PRINT_GREEN,.)
 
 $(OPATH):
@@ -130,6 +143,7 @@ $(OPATH):
 
 clean:
 	$(RM) -Rf $(OPATH)
+	$(RM) -f $(ASM_OBJ)
 	echo $(PROJECT)": Objects cleaned "
 	printf $(PROJECT)": $@ rule "
 	$(call PRINT_STATUS,DONE,SUCCESS)
@@ -137,6 +151,7 @@ clean:
 fclean: clean
 	$(RM) -f $(NAME)
 	$(RM) -f $(NEW_BIN)
+	$(RM) -f $(ASM_BYTECODE)
 	echo $(PROJECT)": executable clean"
 	printf $(PROJECT)": $@ rule "
 	$(call PRINT_STATUS,DONE,SUCCESS)

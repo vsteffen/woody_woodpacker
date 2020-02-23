@@ -1,6 +1,8 @@
 *.o
 /woody_woodpacker
 /woody
+/asm/*.o
+/asm/bytecode
 *.dSYM
 a.out
 *.a

@@ -1,6 +1,8 @@
 #include "woody_woodpacker.h"
 
 void	save_new_section(struct s_woody *woody, int new_bin_fd, Elf64_Shdr *shdr_bss) {
+	static const char bytecode[] = BYTECODE;
+
 	// Padding for BSS section
 	size_t size_to_write = shdr_bss->sh_size;
 	char padding_zero[4096];
@@ -21,7 +23,7 @@ void	save_new_section(struct s_woody *woody, int new_bin_fd, Elf64_Shdr *shdr_bs
 	}
 
 	// Write new section
-	if (write(new_bin_fd, padding_zero, NEW_SECTION_SIZE) == -1) {
+	if (write(new_bin_fd, bytecode, sizeof(bytecode)) == -1) {
 		ERROR("write");
 		exit_clean(woody, EXIT_FAILURE);
 	}
