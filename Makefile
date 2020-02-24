@@ -28,7 +28,7 @@ HEXDUMP	=	/usr/bin/hexdump
 
 OBJ = $(patsubst %.c, $(OPATH)/%.o, $(SRC))
 
-CFLAGS = -Wall -Wextra -Werror -g -fsanitize=address
+CFLAGS = -Wall -Wextra -Werror -g #-fsanitize=address
 
 ifeq ($(with-asm),y)
 	WITH-ASM:= with-asm

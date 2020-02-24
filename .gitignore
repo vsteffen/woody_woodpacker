@@ -14,3 +14,7 @@ a.out
 .DS_Store
 in.my
 in.ref
+
+.gdb_history
+core
+peda-session-*

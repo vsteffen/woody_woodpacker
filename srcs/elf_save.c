@@ -1,7 +1,15 @@
 #include "woody_woodpacker.h"
 
+static void *find_pattern(void *addr, size_t size, uint64_t pattern) {
+	for (size_t i = 0; i < size; i++) {
+		if (*(uint64_t *)(addr + i) == pattern)
+			return (addr + i);
+	}
+	return (NULL);
+}
+
 void	save_new_section(struct s_woody *woody, int new_bin_fd, Elf64_Shdr *shdr_bss) {
-	static const char bytecode[] = BYTECODE;
+	static char bytecode[] = BYTECODE;
 
 	// Padding for BSS section
 	size_t size_to_write = shdr_bss->sh_size;
@@ -23,6 +31,12 @@ void	save_new_section(struct s_woody *woody, int new_bin_fd, Elf64_Shdr *shdr_bs
 	}
 
 	// Write new section
+	void *addr_pattern = find_pattern((void *)bytecode, sizeof(bytecode), PATTERN_ENTRY);
+	if (!addr_pattern) {
+		dprintf(STDERR_FILENO, "woody_woodpacker: entry pattern not found\n");
+		exit_clean(woody, EXIT_FAILURE);
+	}
+	*(uint64_t *)addr_pattern = woody->ehdr.e_entry;
 	if (write(new_bin_fd, bytecode, sizeof(bytecode)) == -1) {
 		ERROR("write");
 		exit_clean(woody, EXIT_FAILURE);
@@ -63,6 +77,7 @@ void	save_new_elf_file(struct s_woody *woody, Elf64_Shdr *shdr_bss, uint16_t ind
 		exit_clean(woody, EXIT_FAILURE);
 	}
 	written_map_bytes += size_to_write_before_decrypter;
+	printf("debug: insert new section at %#zx\n", written_map_bytes);
 	save_new_section(woody, new_bin_fd, shdr_bss);
 	size_t size_to_write_before_new_section = (woody->ehdr.e_shoff + woody->ehdr.e_shentsize * (index_shdr_bss + 1)) - written_map_bytes;
 	if (write(new_bin_fd, woody->bin_map + written_map_bytes, size_to_write_before_new_section) == -1) { // SECOND PART

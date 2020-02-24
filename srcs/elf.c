@@ -73,11 +73,11 @@ void		insert_section_after_bss(struct s_woody *woody) {
 	}
 	read_section_header(woody, index_shdr_bss, &shdr_bss);
 
+	fill_new_section(woody, &woody->new_section, &shdr_bss);
+
 	modify_ehdr(woody, &shdr_bss);
 	modify_phdr_bss(woody, &shdr_bss);
 	modify_shdr_pushed_by_new_section(woody, &shdr_bss, index_shdr_bss);
-
-	fill_new_section(woody, &woody->new_section, &shdr_bss);
 
 	save_new_elf_file(woody, &shdr_bss, index_shdr_bss);
 }

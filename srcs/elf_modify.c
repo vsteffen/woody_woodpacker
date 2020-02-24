@@ -25,6 +25,9 @@ void	modify_ehdr(struct s_woody *woody, Elf64_Shdr *shdr_bss) {
 	write_uint16(woody, &fptr_ehdr->e_shnum, woody->ehdr.e_shnum + 1);
 	write_uint64(woody, &fptr_ehdr->e_shoff, woody->ehdr.e_shoff + NEW_SECTION_SIZE + shdr_bss->sh_size);
 	write_uint16(woody, &fptr_ehdr->e_shstrndx, woody->ehdr.e_shstrndx + 1);
+	woody->new_entry = shdr_bss->sh_addr + shdr_bss->sh_size;
+	printf("debug: new entry point at %#zx\n", woody->new_entry);
+	write_uint64(woody, &fptr_ehdr->e_entry, woody->new_entry);
 }
 
 void	modify_shdr_pushed_by_new_section(struct s_woody *woody, Elf64_Shdr *shdr_bss, uint16_t index_shdr_bss) {

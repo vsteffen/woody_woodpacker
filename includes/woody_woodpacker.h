@@ -14,8 +14,9 @@
 # define USAGE "Usage: woody_woodpacker elf_file [key]\n"
 
 # define NEW_BIN_FILENAME "woody"
+# define NEW_SECTION_SIZE sizeof(BYTECODE)
+# define PATTERN_ENTRY 0xAAAAAAAAAAAAAAAA
 
-# define NEW_SECTION_SIZE 256
 
 typedef enum {false, true} bool;
 
@@ -26,6 +27,7 @@ typedef struct	s_woody {
 	Elf64_Ehdr	ehdr;		// Ehdr copy with good endian
 	Elf64_Shdr	shstrtab;	// Shdr copy with good endian
 	Elf64_Shdr	new_section;
+	uint64_t	new_entry;
 	bool		reverse_endian;
 }		t_woody;
 

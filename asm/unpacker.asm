@@ -1,21 +1,23 @@
-global unpacker
+global woody
 
 extern puts
 
 section .text
 
-unpacker:
+woody:
 	push	rbp
-	mov	rbp, rsp
-
-
-print:
-	mov	rdi, woody_str
-	call puts
-
-exit:
-	mov	rsp, rbp
+	mov	rax, 1
+	mov	rdi, 1
+	lea	rsi, [rel woody_str]
+	mov	rdx, woody_str_end - woody_str
+	syscall
 	pop	rbp
-	ret
 
-woody_str db "....WOODY....", 0
+	mov rax, 0xAAAAAAAAAAAAAAAA
+	jmp rax
+
+
+align 8
+
+woody_str	db "....WOODY....", 0x0a, 0
+woody_str_end	db 0x0
