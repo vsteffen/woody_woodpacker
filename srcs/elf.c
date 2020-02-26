@@ -39,32 +39,48 @@ uint16_t	get_index_segment_containing_section(struct s_woody *woody, Elf64_Shdr 
 	return (-1);
 }
 
-void		fill_new_section(struct s_woody *woody, Elf64_Shdr *new_section, Elf64_Shdr *shdr_bss) {
-	Elf64_Shdr	shdr_text;
-	uint16_t	index_shdr_text;
-
-	index_shdr_text = get_index_section_with_name(woody, ".text");
-	if (index_shdr_text == (uint16_t)-1) {
-		dprintf(STDERR_FILENO, "woody_woodpacker: .text section not found\n");
-		exit_clean(woody, EXIT_FAILURE);
-	}
-	read_section_header(woody, index_shdr_text, &shdr_text);
+void		fill_new_section(/*struct s_woody *woody, */Elf64_Shdr *new_section, Elf64_Shdr *shdr_last) {
+	// Elf64_Shdr	shdr_text;
+	// uint16_t	index_shdr_text;
+	//
+	// index_shdr_text = get_index_section_with_name(woody, ".text");
+	// if (index_shdr_text == (uint16_t)-1) {
+	// 	dprintf(STDERR_FILENO, "woody_woodpacker: .text section not found\n");
+	// 	exit_clean(woody, EXIT_FAILURE);
+	// }
+	// read_section_header(woody, index_shdr_text, &shdr_text);
 
 	new_section->sh_name = 0;
 	new_section->sh_type = SHT_PROGBITS;
 	new_section->sh_flags = SHF_EXECINSTR | SHF_ALLOC;
-	new_section->sh_addr = shdr_bss->sh_addr + shdr_bss->sh_size;
-	new_section->sh_offset = shdr_bss->sh_offset;
+	new_section->sh_addr = shdr_last->sh_addr + shdr_last->sh_size; // Push bc shdr_last will be at least SHT_PROGBITS
+	new_section->sh_offset = shdr_last->sh_offset + shdr_last->sh_size;
 	new_section->sh_size = NEW_SECTION_SIZE;
 	new_section->sh_link = 0;
 	new_section->sh_info = 0;
-	new_section->sh_addralign = shdr_text.sh_addralign;
+	new_section->sh_addralign = 1;//shdr_text.sh_addralign;
 	new_section->sh_entsize = 0;
 }
 
+uint16_t	get_index_last_shdr_in_phdr_bss(struct s_woody *woody, uint16_t index_shdr_bss, Elf64_Phdr *phdr_bss) {
+	uint64_t	phdr_bss_last_byte = phdr_bss->p_vaddr + phdr_bss->p_memsz;
+	Elf64_Shdr	tmp;
+
+	for (uint16_t i = index_shdr_bss; i < woody->ehdr.e_shnum; i++) {
+		read_section_header(woody, i, &tmp);
+		if (tmp.sh_addr + tmp.sh_size == phdr_bss_last_byte)
+			return (i);
+	}
+	return (-1);
+}
+
 void		insert_section_after_bss(struct s_woody *woody) {
+	Elf64_Shdr	shdr_last;
 	Elf64_Shdr	shdr_bss;
+	Elf64_Phdr	phdr_bss;
 	uint16_t	index_shdr_bss;
+	uint16_t	index_phdr_bss;
+	uint16_t	index_shdr_last;
 
 	index_shdr_bss = get_index_section_with_name(woody, ".bss");
 	if (index_shdr_bss == (uint16_t)-1) {
@@ -73,11 +89,32 @@ void		insert_section_after_bss(struct s_woody *woody) {
 	}
 	read_section_header(woody, index_shdr_bss, &shdr_bss);
 
-	fill_new_section(woody, &woody->new_section, &shdr_bss);
+	index_phdr_bss = get_index_segment_containing_section(woody, &shdr_bss);
+	if (index_phdr_bss == (uint16_t)-1) {
+		dprintf(STDERR_FILENO, "woody_woodpacker: .bss section not mapped (?)");
+		exit_clean(woody, EXIT_FAILURE);
+	}
+	read_program_header(woody, index_phdr_bss, &phdr_bss);
 
-	modify_ehdr(woody, &shdr_bss);
-	modify_phdr_bss(woody, &shdr_bss);
-	modify_shdr_pushed_by_new_section(woody, &shdr_bss, index_shdr_bss);
+	index_shdr_last = get_index_last_shdr_in_phdr_bss(woody, index_shdr_bss, &phdr_bss);
+	if (index_shdr_last == (uint16_t)-1) {
+		dprintf(STDERR_FILENO, "woody_woodpacker: last section of phdr bss not found\n");
+		exit_clean(woody, EXIT_FAILURE);
+	}
+	read_section_header(woody, index_shdr_last, &shdr_last);
+	if (shdr_last.sh_type == SHT_NOBITS)
+		woody->new_section_and_padding_size = NEW_SECTION_SIZE + shdr_last.sh_size;
+	else
+		woody->new_section_and_padding_size = NEW_SECTION_SIZE;
 
-	save_new_elf_file(woody, &shdr_bss, index_shdr_bss);
+	modify_shdr_last(woody, &shdr_last, index_shdr_last);
+
+	fill_new_section(&woody->new_section, &shdr_last);
+	woody->new_entry = shdr_last.sh_addr + shdr_last.sh_size;
+
+	modify_ehdr(woody);
+	modify_phdr_bss(woody, &phdr_bss, index_phdr_bss);
+	modify_shdr_pushed_by_new_section(woody, index_shdr_last);
+
+	save_new_elf_file(woody, &shdr_last, index_shdr_last);
 }

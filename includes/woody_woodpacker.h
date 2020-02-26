@@ -14,9 +14,10 @@
 # define USAGE "Usage: woody_woodpacker elf_file [key]\n"
 
 # define NEW_BIN_FILENAME "woody"
-# define NEW_SECTION_SIZE sizeof(BYTECODE)
-# define PATTERN_ENTRY 0xAAAAAAAAAAAAAAAA
+# define NEW_SECTION_SIZE (sizeof(BYTECODE) + 0x12d - 0x18)//sizeof(BYTECODE)
 
+# define PATTERN_ENTRY_OLD 		0xAAAAAAe9
+# define PATTERN_ENTRY_OLD_SIZE_OPCODE	1
 
 typedef enum {false, true} bool;
 
@@ -28,6 +29,8 @@ typedef struct	s_woody {
 	Elf64_Shdr	shstrtab;	// Shdr copy with good endian
 	Elf64_Shdr	new_section;
 	uint64_t	new_entry;
+	uint64_t	shdr_last_offset_adjustment;
+	uint64_t	new_section_and_padding_size;
 	bool		reverse_endian;
 }		t_woody;
 
@@ -52,9 +55,10 @@ void	write_uint16(struct s_woody *woody, uint16_t *addr, uint16_t value);
 void	write_uint32(struct s_woody *woody, uint32_t *addr, uint32_t value);
 void	write_uint64(struct s_woody *woody, uint64_t *addr, uint64_t value);
 
-void	modify_ehdr(struct s_woody *woody, Elf64_Shdr *shdr_bss);
-void	modify_phdr_bss(struct s_woody *woody, Elf64_Shdr *shdr_bss);
-void	modify_shdr_pushed_by_new_section(struct s_woody *woody, Elf64_Shdr *shdr_bss, uint16_t index_shdr_bss);
+void	modify_ehdr(struct s_woody *woody);
+void	modify_phdr_bss(struct s_woody *woody, Elf64_Phdr *phdr_bss, uint16_t index_phdr_bss);
+void	modify_shdr_pushed_by_new_section(struct s_woody *woody, uint16_t index_shdr_last);
+void	modify_shdr_last(struct s_woody *woody, Elf64_Shdr *shdr_last, uint16_t index_shdr_last);
 
 void	insert_section_after_bss(struct s_woody *woody);
 
