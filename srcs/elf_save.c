@@ -44,7 +44,7 @@ void	save_new_section(struct s_woody *woody, int new_bin_fd, Elf64_Shdr *shdr_la
 	// Write new section
 	void *addr_pattern = find_pattern32((void *)bytecode, NEW_SECTION_SIZE, PATTERN_ENTRY_OLD, PATTERN_ENTRY_OLD_SIZE_OPCODE);
 	if (!addr_pattern) {
-		dprintf(STDERR_FILENO, "woody_woodpacker: old entry pattern not found\n");
+		dprintf(STDERR_FILENO, "%s: old entry pattern not found\n", woody->woody_name);
 		exit_clean(woody, EXIT_FAILURE);
 	}
 	*(int32_t *)addr_pattern = woody->ehdr.e_entry - (woody->new_entry  + (size_t)(addr_pattern - (void *)bytecode) + sizeof(PATTERN_ENTRY_OLD));

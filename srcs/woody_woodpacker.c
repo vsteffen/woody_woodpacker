@@ -27,19 +27,16 @@ bool	map_file(char *elf_filename, struct s_woody *woody) {
 	return (true);
 }
 
-void	print_usage() {
-	printf(USAGE);
-}
-
 int	main(int ac, char **av)
 {
 	struct s_woody	woody;
 
 	if (ac < 2 || ac > 3) {
-		print_usage();
+		printf(USAGE, av[0]);
 		return (EXIT_FAILURE);
 	}
 
+	woody.woody_name = av[0];
 	if (!map_file(av[1], &woody))
 		return (EXIT_FAILURE);
 	read_elf_header(&woody);

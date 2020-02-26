@@ -11,7 +11,7 @@
 # include <sys/stat.h>
 # include <errno.h>
 
-# define USAGE "Usage: woody_woodpacker elf_file [key]\n"
+# define USAGE "Usage: %s elf_file [key]\n"
 
 # define NEW_BIN_FILENAME "woody"
 # define NEW_SECTION_SIZE (sizeof(BYTECODE) + 0x12d - 0x18)//sizeof(BYTECODE)
@@ -22,6 +22,7 @@
 typedef enum {false, true} bool;
 
 typedef struct	s_woody {
+	char		*woody_name;
 	int		bin_fd;
 	struct stat	bin_st;
 	void		*bin_map;

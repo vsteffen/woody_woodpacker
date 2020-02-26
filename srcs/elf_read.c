@@ -2,18 +2,18 @@
 
 void	read_elf_header(struct s_woody *woody) {
 	if ((size_t)woody->bin_st.st_size < sizeof(Elf64_Ehdr)) {
-		dprintf(STDERR_FILENO, "woody_woodpacker: not an ELF file (file too small to contain ELF header)\n");
+		dprintf(STDERR_FILENO, "%s: not an ELF file (file too small to contain ELF header)\n", woody->woody_name);
 		exit_clean(woody, EXIT_FAILURE);
 	}
 	woody->ehdr = *(Elf64_Ehdr *)woody->bin_map;
 
 	if (*(uint32_t *)woody->ehdr.e_ident != *(uint32_t *)ELFMAG) {
-		dprintf(STDERR_FILENO, "woody_woodpacker: not an ELF file (wrong magic number)\n");
+		dprintf(STDERR_FILENO, "%s: not an ELF file (wrong magic number)\n", woody->woody_name);
 		exit_clean(woody, EXIT_FAILURE);
 	}
 
 	if (woody->ehdr.e_ident[EI_CLASS] != ELFCLASS64) {
-		dprintf(STDERR_FILENO, "woody_woodpacker: ELF Class not supported\n");
+		dprintf(STDERR_FILENO, "%s: ELF Class not supported\n", woody->woody_name);
 		exit_clean(woody, EXIT_FAILURE);
 	}
 
@@ -34,6 +34,12 @@ void	read_elf_header(struct s_woody *woody) {
 	else {
 		woody->reverse_endian = false;
 	}
+
+	if (woody->ehdr.e_type != ET_EXEC && woody->ehdr.e_type != ET_DYN) {
+		dprintf(STDERR_FILENO, "%s: wrong ELF type\n", woody->woody_name);
+		exit_clean(woody, EXIT_FAILURE);
+	}
+
 	if (woody->reverse_endian) {
 		woody->ehdr.e_type 	=  BSWAP16(woody->ehdr.e_type);
 		woody->ehdr.e_machine 	=  BSWAP16(woody->ehdr.e_machine);

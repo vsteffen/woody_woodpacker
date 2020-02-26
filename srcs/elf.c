@@ -4,7 +4,7 @@ void	check_headers_offset(struct s_woody *woody) {
 	if (woody->ehdr.e_phoff + woody->ehdr.e_phentsize * woody->ehdr.e_phnum > (size_t)woody->bin_st.st_size
 		| woody->ehdr.e_shoff + woody->ehdr.e_shentsize * woody->ehdr.e_shnum > (size_t)woody->bin_st.st_size)
 	{
-		dprintf(STDERR_FILENO, "woody_woodpacker: corrupted ELF file\n");
+		dprintf(STDERR_FILENO, "%s: corrupted ELF file\n", woody->woody_name);
 		exit_clean(woody, EXIT_FAILURE);
 	}
 }
@@ -45,7 +45,7 @@ void		fill_new_section(/*struct s_woody *woody, */Elf64_Shdr *new_section, Elf64
 	//
 	// index_shdr_text = get_index_section_with_name(woody, ".text");
 	// if (index_shdr_text == (uint16_t)-1) {
-	// 	dprintf(STDERR_FILENO, "woody_woodpacker: .text section not found\n");
+	// 	dprintf(STDERR_FILENO, "%s: .text section not found\n", woody->woody_name);
 	// 	exit_clean(woody, EXIT_FAILURE);
 	// }
 	// read_section_header(woody, index_shdr_text, &shdr_text);
@@ -84,21 +84,21 @@ void		insert_section_after_bss(struct s_woody *woody) {
 
 	index_shdr_bss = get_index_section_with_name(woody, ".bss");
 	if (index_shdr_bss == (uint16_t)-1) {
-		dprintf(STDERR_FILENO, "woody_woodpacker: .bss section not found\n");
+		dprintf(STDERR_FILENO, "%s: .bss section not found\n", woody->woody_name);
 		exit_clean(woody, EXIT_FAILURE);
 	}
 	read_section_header(woody, index_shdr_bss, &shdr_bss);
 
 	index_phdr_bss = get_index_segment_containing_section(woody, &shdr_bss);
 	if (index_phdr_bss == (uint16_t)-1) {
-		dprintf(STDERR_FILENO, "woody_woodpacker: .bss section not mapped (?)");
+		dprintf(STDERR_FILENO, "%s: .bss section not mapped (?)\n", woody->woody_name);
 		exit_clean(woody, EXIT_FAILURE);
 	}
 	read_program_header(woody, index_phdr_bss, &phdr_bss);
 
 	index_shdr_last = get_index_last_shdr_in_phdr_bss(woody, index_shdr_bss, &phdr_bss);
 	if (index_shdr_last == (uint16_t)-1) {
-		dprintf(STDERR_FILENO, "woody_woodpacker: last section of phdr bss not found\n");
+		dprintf(STDERR_FILENO, "%s: last section of phdr bss not found\n", woody->woody_name);
 		exit_clean(woody, EXIT_FAILURE);
 	}
 	read_section_header(woody, index_shdr_last, &shdr_last);
