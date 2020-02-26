@@ -10,8 +10,11 @@
 # include <fcntl.h>
 # include <sys/stat.h>
 # include <errno.h>
+# include <sys/syscall.h>
 
 # define USAGE "Usage: %s elf_file [key]\n"
+
+# define KEY_DEFAULT_SIZE 64
 
 # define NEW_BIN_FILENAME "woody"
 # define NEW_SECTION_SIZE (sizeof(BYTECODE) + 0x12d - 0x18)//sizeof(BYTECODE)
@@ -21,8 +24,14 @@
 
 typedef enum {false, true} bool;
 
+typedef struct	s_key {
+	char	*raw;
+	size_t	length;
+}		t_key;
+
 typedef struct	s_woody {
 	char		*woody_name;
+	struct s_key	key;
 	int		bin_fd;
 	struct stat	bin_st;
 	void		*bin_map;
