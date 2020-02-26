@@ -17,10 +17,19 @@
 # define KEY_DEFAULT_SIZE 64
 
 # define NEW_BIN_FILENAME "woody"
-# define NEW_SECTION_SIZE (sizeof(BYTECODE) + 0x12d - 0x18)//sizeof(BYTECODE)
+# define BYTECODE_SIZE sizeof(BYTECODE)
 
 # define PATTERN_ENTRY_OLD 		0xAAAAAAe9
 # define PATTERN_ENTRY_OLD_SIZE_OPCODE	1
+
+# define PATTERN_KEY_SIZE		0xBBBBBBBBBBBBBBBB
+# define PATTERN_KEY_SIZE_OPCODE	0
+
+# define PATTERN_TEXT_SIZE		0xCCCCCCCCCCCCCCCC
+# define PATTERN_TEXT_SIZE_OPCODE	0
+
+# define PATTERN_ENTRY_TEXT		0xDDDDDDDD
+# define PATTERN_ENTRY_TEXT_SIZE_OPCODE	0
 
 typedef enum {false, true} bool;
 
@@ -55,7 +64,7 @@ const char	*get_ehdr_type_str(uint16_t e_type);
 const char	*get_shdr_type_str(uint32_t sh_type);
 void		get_shstrtab(struct s_woody *woody);
 uint16_t	get_index_segment_containing_section(struct s_woody *woody, Elf64_Shdr *section);
-
+uint16_t	get_index_section_with_name(struct s_woody *woody, char *section_name);
 
 void	read_elf_header(struct s_woody *woody);
 void	read_program_header(struct s_woody *woody, uint16_t index, Elf64_Phdr *phdr);

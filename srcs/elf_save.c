@@ -8,7 +8,7 @@ static void *find_pattern32(void *addr, size_t size, uint32_t pattern, uint8_t o
 	return (NULL);
 }
 
-static __attribute__((unused)) void *find_pattern64(void *addr, size_t size, uint64_t pattern, uint8_t opcode_size) {
+static	void *find_pattern64(void *addr, size_t size, uint64_t pattern, uint8_t opcode_size) {
 	for (size_t i = 0; i < size - sizeof(pattern); i++) {
 		if (*(uint64_t *)(addr + i) == pattern)
 			return (addr + i + opcode_size);
@@ -41,14 +41,57 @@ void	save_new_section(struct s_woody *woody, int new_bin_fd, Elf64_Shdr *shdr_la
 		}
 	}
 
-	// Write new section
-	void *addr_pattern = find_pattern32((void *)bytecode, NEW_SECTION_SIZE, PATTERN_ENTRY_OLD, PATTERN_ENTRY_OLD_SIZE_OPCODE);
+	void *addr_pattern;
+	// Write old entry
+	addr_pattern = find_pattern32((void *)bytecode, BYTECODE_SIZE, PATTERN_ENTRY_OLD, PATTERN_ENTRY_OLD_SIZE_OPCODE);
 	if (!addr_pattern) {
 		dprintf(STDERR_FILENO, "%s: old entry pattern not found\n", woody->woody_name);
 		exit_clean(woody, EXIT_FAILURE);
 	}
 	*(int32_t *)addr_pattern = woody->ehdr.e_entry - (woody->new_entry  + (size_t)(addr_pattern - (void *)bytecode) + sizeof(PATTERN_ENTRY_OLD));
-	if (write(new_bin_fd, bytecode, NEW_SECTION_SIZE) == -1) {
+
+	// Write key size
+	addr_pattern = find_pattern64((void *)bytecode, BYTECODE_SIZE, PATTERN_KEY_SIZE, PATTERN_KEY_SIZE_OPCODE);
+	if (!addr_pattern) {
+		dprintf(STDERR_FILENO, "%s: key size pattern not found\n", woody->woody_name);
+		exit_clean(woody, EXIT_FAILURE);
+	}
+	*(uint64_t *)addr_pattern = woody->key.length;
+
+
+	// Write text section size
+	Elf64_Shdr	shdr_text;
+	uint16_t	index_shdr_text;
+	index_shdr_text = get_index_section_with_name(woody, ".text");
+	if (index_shdr_text == (uint16_t)-1) {
+		dprintf(STDERR_FILENO, "%s: .text section not found\n", woody->woody_name);
+		exit_clean(woody, EXIT_FAILURE);
+	}
+	read_section_header(woody, index_shdr_text, &shdr_text);
+	addr_pattern = find_pattern64((void *)bytecode, BYTECODE_SIZE, PATTERN_TEXT_SIZE, PATTERN_TEXT_SIZE_OPCODE);
+	if (!addr_pattern) {
+		dprintf(STDERR_FILENO, "%s: .text size pattern not found\n", woody->woody_name);
+		exit_clean(woody, EXIT_FAILURE);
+	}
+	*(uint64_t *)addr_pattern = shdr_text.sh_size;
+
+	// Write text entry
+	addr_pattern = find_pattern32((void *)bytecode, BYTECODE_SIZE, PATTERN_ENTRY_TEXT, PATTERN_ENTRY_TEXT_SIZE_OPCODE);
+	if (!addr_pattern) {
+		dprintf(STDERR_FILENO, "%s: .text entry pattern not found\n", woody->woody_name);
+		exit_clean(woody, EXIT_FAILURE);
+	}
+	*(int32_t *)addr_pattern = shdr_text.sh_addr - (woody->new_section.sh_addr + (size_t)(addr_pattern - (void *)bytecode) + sizeof(PATTERN_ENTRY_OLD));
+
+
+	// Write instructions
+	if (write(new_bin_fd, bytecode, BYTECODE_SIZE) == -1) {
+		ERROR("write");
+		exit_clean(woody, EXIT_FAILURE);
+	}
+
+	// Write key
+	if (write(new_bin_fd, woody->key.raw, woody->key.length) == -1) {
 		ERROR("write");
 		exit_clean(woody, EXIT_FAILURE);
 	}

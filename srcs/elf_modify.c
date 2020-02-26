@@ -1,5 +1,26 @@
 #include "woody_woodpacker.h"
 
+void	modify_shdr_last(struct s_woody *woody, Elf64_Shdr *shdr_last, uint16_t index_shdr_last) {
+	Elf64_Shdr shdr_prev_last;
+	Elf64_Shdr *fptr_shdr_last;
+	size_t shdr_last_offset;
+
+	if (shdr_last->sh_type == SHT_NOBITS) {
+		fptr_shdr_last = (Elf64_Shdr *)(woody->bin_map + woody->ehdr.e_shoff + woody->ehdr.e_shentsize * index_shdr_last);
+		write_uint32(woody, &fptr_shdr_last->sh_type, SHT_PROGBITS);
+		read_section_header(woody, index_shdr_last - 1, &shdr_prev_last);
+		shdr_last_offset = shdr_prev_last.sh_offset + (shdr_last->sh_addr - shdr_prev_last.sh_addr);
+		if (shdr_last_offset > shdr_last->sh_offset) {
+			printf("debug: change shdr_last offset\n");
+			write_uint64(woody, &fptr_shdr_last->sh_offset, shdr_last_offset);
+			woody->shdr_last_offset_adjustment = shdr_last_offset - shdr_last->sh_offset;
+			shdr_last->sh_offset = shdr_last_offset;
+		}
+		else
+			woody->shdr_last_offset_adjustment = 0;
+	}
+}
+
 void	modify_ehdr(struct s_woody *woody) {
 	Elf64_Ehdr	*fptr_ehdr;
 
@@ -16,7 +37,7 @@ void	modify_phdr_bss(struct s_woody *woody, Elf64_Phdr *phdr_bss, uint16_t index
 
 	fptr_phdr_bss = (Elf64_Phdr *)(woody->bin_map + woody->ehdr.e_phoff + woody->ehdr.e_phentsize * index_phdr_bss);
 	write_uint64(woody, &fptr_phdr_bss->p_filesz, phdr_bss->p_filesz + woody->new_section_and_padding_size + woody->shdr_last_offset_adjustment);
-	write_uint64(woody, &fptr_phdr_bss->p_memsz, phdr_bss->p_memsz + NEW_SECTION_SIZE);
+	write_uint64(woody, &fptr_phdr_bss->p_memsz, phdr_bss->p_memsz + BYTECODE_SIZE + woody->key.length);
 	write_uint32(woody, &fptr_phdr_bss->p_flags, PF_R | PF_W | PF_X);
 }
 
@@ -33,28 +54,5 @@ void	modify_shdr_pushed_by_new_section(struct s_woody *woody, uint16_t index_shd
 			write_uint32(woody, &fptr_shdr_tmp->sh_link, tmp.sh_link + 1);
 		}
 		write_uint64(woody, &fptr_shdr_tmp->sh_offset, tmp.sh_offset + woody->new_section_and_padding_size + woody->shdr_last_offset_adjustment);
-	}
-}
-
-void	modify_shdr_last(struct s_woody *woody, Elf64_Shdr *shdr_last, uint16_t index_shdr_last) {
-	Elf64_Shdr shdr_prev_last;
-	Elf64_Shdr *fptr_shdr_last;
-	size_t shdr_last_offset;
-
-	if (shdr_last->sh_type == SHT_NOBITS) {
-		fptr_shdr_last = (Elf64_Shdr *)(woody->bin_map + woody->ehdr.e_shoff + woody->ehdr.e_shentsize * index_shdr_last);
-		write_uint32(woody, &fptr_shdr_last->sh_type, SHT_PROGBITS);
-		// shdr_last->sh_type = SHT_PROGBITS;
-		read_section_header(woody, index_shdr_last - 1, &shdr_prev_last);
-		shdr_last_offset = shdr_prev_last.sh_offset + (shdr_last->sh_addr - shdr_prev_last.sh_addr);
-		if (shdr_last_offset > shdr_last->sh_offset) {
-			printf("debug: change shdr_last offset\n");
-			write_uint64(woody, &fptr_shdr_last->sh_offset, shdr_last_offset);
-			woody->shdr_last_offset_adjustment = shdr_last_offset - shdr_last->sh_offset;
-			// woody->shdr_last_offset_adjustment = 0;
-			shdr_last->sh_offset = shdr_last_offset;
-		}
-		else
-			woody->shdr_last_offset_adjustment = 0;
 	}
 }
