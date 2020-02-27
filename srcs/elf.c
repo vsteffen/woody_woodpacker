@@ -67,8 +67,10 @@ uint16_t	get_index_last_shdr_in_phdr_bss(struct s_woody *woody, uint16_t index_s
 void		insert_section_after_bss(struct s_woody *woody) {
 	Elf64_Shdr	shdr_last;
 	Elf64_Shdr	shdr_bss;
+	Elf64_Shdr	shdr_text;
 	Elf64_Phdr	phdr_bss;
 	uint16_t	index_shdr_bss;
+	uint16_t	index_shdr_text;
 	uint16_t	index_phdr_bss;
 	uint16_t	index_shdr_last;
 
@@ -92,19 +94,31 @@ void		insert_section_after_bss(struct s_woody *woody) {
 		exit_clean(woody, EXIT_FAILURE);
 	}
 	read_section_header(woody, index_shdr_last, &shdr_last);
+
 	if (shdr_last.sh_type == SHT_NOBITS)
 		woody->new_section_and_padding_size = BYTECODE_SIZE + woody->key.length + shdr_last.sh_size;
 	else
 		woody->new_section_and_padding_size = BYTECODE_SIZE + woody->key.length;
 
-	modify_shdr_last(woody, &shdr_last, index_shdr_last);
+	index_shdr_text = get_index_section_with_name(woody, ".text");
+	if (index_shdr_text == (uint16_t)-1) {
+		dprintf(STDERR_FILENO, "%s: .text section not found\n", woody->woody_name);
+		exit_clean(woody, EXIT_FAILURE);
+	}
+	read_section_header(woody, index_shdr_text, &shdr_text);
+
+
+	modify_shdr_last(woody, &shdr_last, index_shdr_last); // Must be done before fill_new_section
 
 	fill_new_section(woody, &woody->new_section, &shdr_last);
 	woody->new_entry = shdr_last.sh_addr + shdr_last.sh_size;
 
 	modify_ehdr(woody);
 	modify_phdr_bss(woody, &phdr_bss, index_phdr_bss);
+	modify_phdr_text(woody, &shdr_text);
 	modify_shdr_pushed_by_new_section(woody, index_shdr_last);
+
+	xor_cipher(woody->key.raw, woody->key.length, woody->bin_map + shdr_text.sh_offset, shdr_text.sh_size);
 
 	save_new_elf_file(woody, &shdr_last, index_shdr_last);
 }

@@ -11,15 +11,12 @@ woody:
 	push	r9
 	push	r10
 
-xor_cipher_args:
+xor_cipher_params:
 	lea	rdi, [rel woody_str_end + 2]
 	mov	rsi, 0xBBBBBBBBBBBBBBBB
-	mov	edx, 0xDDDDDDDD
+	lea	rdx, [rel woody - 0x22222201]
 	mov	rcx, 0xCCCCCCCCCCCCCCCC
-
-; xor_cipher(char *key, size_t key_size, void *text, size_t text_size)
-xor_cipher:
-	mov	rax, 1
+	call	xor_cipher
 
 print_woody:
 	mov	rax, 1
@@ -38,6 +35,35 @@ exit:
 	popfq
 
 	jmp 0xAAAAAAAE
+
+
+
+; void xor_cipher(char *key, size_t key_size, void *text, size_t text_size)
+xor_cipher:
+	xor	r8, r8		; counter
+	mov	r9, rdx		; address of .text
+	mov	r10, rcx	; size of .text
+
+loop:
+	cmp	r8, r10
+	je	xor_cipher_end
+
+	xor	rdx, rdx	; clear dividend
+	mov	rax, r8		; dividend
+	mov	rcx, rsi	; divisor
+	div	rcx, 		; rax = /, rdx = %
+
+	lea	rax, [rel rdi + rdx]
+	mov	dl, byte[rax]
+	xor	byte[r9], dl
+
+	inc	r8
+	inc	r9
+	jmp	loop
+
+xor_cipher_end:
+	ret
+
 
 
 align 8

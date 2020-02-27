@@ -76,10 +76,13 @@ void	write_uint64(struct s_woody *woody, uint64_t *addr, uint64_t value);
 
 void	modify_ehdr(struct s_woody *woody);
 void	modify_phdr_bss(struct s_woody *woody, Elf64_Phdr *phdr_bss, uint16_t index_phdr_bss);
+void	modify_phdr_text(struct s_woody *woody, Elf64_Shdr *shdr_text);
 void	modify_shdr_pushed_by_new_section(struct s_woody *woody, uint16_t index_shdr_last);
 void	modify_shdr_last(struct s_woody *woody, Elf64_Shdr *shdr_last, uint16_t index_shdr_last);
 
 void	insert_section_after_bss(struct s_woody *woody);
+
+void	xor_cipher(char *key, size_t key_size, void *text, size_t text_size);
 
 void	save_new_section(struct s_woody *woody, int new_bin_fd, Elf64_Shdr *shdr_bss);
 void	save_new_shdr(struct s_woody *woody, int new_bin_fd, Elf64_Shdr *new_section);

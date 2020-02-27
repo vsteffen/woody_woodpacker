@@ -128,7 +128,7 @@ $(ASM_OBJ):
 $(NAME): $(PRE_CHECK_LIB) $(ASM_OBJ) $(OPATH) $(OBJ)
 	$(if $(filter $(COMPILE),yes),echo ']')
 	printf $(PROJECT)": Building $@ ... "
-	$(CC) -o $@ $(CFLAGS) $(OBJ) $(LPATH) $(HPATH)
+	$(CC) -o $@ $(CFLAGS) $(OBJ) $(LPATH) $(HPATH) $(ASM_OBJ)
 	$(call PRINT_STATUS,DONE,SUCCESS)
 
 $(OPATH)/%.o: $(CPATH)/%.c | $(PRE_CHECK_LIB)
