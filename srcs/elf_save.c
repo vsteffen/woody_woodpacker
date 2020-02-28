@@ -24,7 +24,7 @@ void	save_new_section(struct s_woody *woody, int new_bin_fd, Elf64_Shdr *shdr_la
 		printf("debug: shdr_last_offset_adjustment = %#zx\n", woody->shdr_last_offset_adjustment);
 		size_t size_to_write = shdr_last->sh_size + woody->shdr_last_offset_adjustment;
 		char padding_zero[4096];
-		memset(padding_zero, 0, sizeof(padding_zero));
+		ft_memset(padding_zero, 0, sizeof(padding_zero));
 		while (true) {
 			if (size_to_write / sizeof(padding_zero) < 1) {
 				if (write(new_bin_fd, padding_zero, size_to_write) == -1) {

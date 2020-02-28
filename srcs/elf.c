@@ -23,7 +23,7 @@ uint16_t	get_index_section_with_name(struct s_woody *woody, char *section_name) 
 	Elf64_Shdr tmp;
 	for (uint16_t i = 0; i < woody->ehdr.e_shnum; i++) {
 		read_section_header(woody, i, &tmp);
-		if (strcmp(section_name, woody->bin_map + woody->shstrtab.sh_offset + tmp.sh_name) == 0)
+		if (ft_strcmp(section_name, woody->bin_map + woody->shstrtab.sh_offset + tmp.sh_name) == 0)
 			return (i);
 	}
 	return (-1);

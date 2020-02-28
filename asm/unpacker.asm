@@ -40,6 +40,9 @@ exit:
 
 ; void xor_cipher(char *key, size_t key_size, void *text, size_t text_size)
 xor_cipher:
+	cmp	rsi, 0
+	je	xor_cipher_end
+
 	xor	r8, r8		; counter
 	mov	r9, rdx		; address of .text
 	mov	r10, rcx	; size of .text

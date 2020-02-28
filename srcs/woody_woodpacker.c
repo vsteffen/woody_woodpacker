@@ -15,7 +15,7 @@ bool	map_file(char *elf_filename, struct s_woody *woody) {
 		return (false);
 	}
 
-	if (fstat(woody->bin_fd, &woody->bin_st) == -1) {
+	if (syscall(__NR_fstat, woody->bin_fd, &woody->bin_st) == -1) {
 		ERROR("fstat");
 		close(woody->bin_fd);
 		return (false);
