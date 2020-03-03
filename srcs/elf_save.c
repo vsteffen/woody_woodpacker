@@ -21,7 +21,6 @@ void	save_new_section(struct s_woody *woody, int new_bin_fd, Elf64_Shdr *shdr_la
 
 	// Padding for BSS section
 	if (shdr_last->sh_type == SHT_NOBITS) {
-		printf("debug: shdr_last_offset_adjustment = %#zx\n", woody->shdr_last_offset_adjustment);
 		size_t size_to_write = shdr_last->sh_size + woody->shdr_last_offset_adjustment;
 		char padding_zero[4096];
 		ft_memset(padding_zero, 0, sizeof(padding_zero));
@@ -127,7 +126,6 @@ void	save_new_elf_file(struct s_woody *woody, Elf64_Shdr *shdr_last, uint16_t in
 		exit_clean(woody, EXIT_FAILURE);
 	}
 	written_map_bytes += size_to_write_before_decrypter;
-	printf("debug: insert new section at %#zx\n", written_map_bytes);
 	save_new_section(woody, new_bin_fd, shdr_last); // Write new section + .bss padding
 	size_t size_to_write_before_new_shdr = (woody->ehdr.e_shoff + woody->ehdr.e_shentsize * (index_shdr_last + 1)) - written_map_bytes;
 	if (write(new_bin_fd, woody->bin_map + written_map_bytes, size_to_write_before_new_shdr) == -1) { // SECOND PART

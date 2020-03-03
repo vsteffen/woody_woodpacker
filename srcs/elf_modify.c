@@ -11,7 +11,6 @@ void	modify_shdr_last(struct s_woody *woody, Elf64_Shdr *shdr_last, uint16_t ind
 		read_section_header(woody, index_shdr_last - 1, &shdr_prev_last);
 		shdr_last_offset = shdr_prev_last.sh_offset + (shdr_last->sh_addr - shdr_prev_last.sh_addr);
 		if (shdr_last_offset > shdr_last->sh_offset) {
-			printf("debug: change shdr_last offset\n");
 			write_uint64(woody, &fptr_shdr_last->sh_offset, shdr_last_offset);
 			woody->shdr_last_offset_adjustment = shdr_last_offset - shdr_last->sh_offset;
 			shdr_last->sh_offset = shdr_last_offset;
@@ -28,7 +27,6 @@ void	modify_ehdr(struct s_woody *woody) {
 	write_uint16(woody, &fptr_ehdr->e_shnum, woody->ehdr.e_shnum + 1);
 	write_uint64(woody, &fptr_ehdr->e_shoff, woody->ehdr.e_shoff + woody->new_section_and_padding_size + woody->shdr_last_offset_adjustment);
 	write_uint16(woody, &fptr_ehdr->e_shstrndx, woody->ehdr.e_shstrndx + 1);
-	printf("debug: new entry point at %#zx\n", woody->new_entry);
 	write_uint64(woody, &fptr_ehdr->e_entry, woody->new_entry);
 }
 
