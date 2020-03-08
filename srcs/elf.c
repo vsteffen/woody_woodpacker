@@ -1,8 +1,8 @@
 #include "woody_woodpacker.h"
 
 void	check_headers_offset(struct s_woody *woody) {
-	if (woody->ehdr.e_phoff + woody->ehdr.e_phentsize * woody->ehdr.e_phnum > (size_t)woody->bin_st.st_size
-		| woody->ehdr.e_shoff + woody->ehdr.e_shentsize * woody->ehdr.e_shnum > (size_t)woody->bin_st.st_size)
+	if (woody->ehdr.e_phoff + woody->ehdr.e_phentsize * woody->ehdr.e_phnum > (size_t)woody->bin_st.st_size \
+		|| woody->ehdr.e_shoff + woody->ehdr.e_shentsize * woody->ehdr.e_shnum > (size_t)woody->bin_st.st_size)
 	{
 		dprintf(STDERR_FILENO, "%s: corrupted ELF file\n", woody->woody_name);
 		exit_clean(woody, EXIT_FAILURE);
@@ -20,9 +20,20 @@ void		get_shstrtab(struct s_woody *woody) {
 }
 
 uint16_t	get_index_section_with_name(struct s_woody *woody, char *section_name) {
-	Elf64_Shdr tmp;
+	Elf64_Shdr	tmp;
+	void		*end_of_str;
+
 	for (uint16_t i = 0; i < woody->ehdr.e_shnum; i++) {
 		read_section_header(woody, i, &tmp);
+		if (woody->shstrtab.sh_offset > (size_t)woody->bin_st.st_size) {
+			dprintf(STDERR_FILENO, "%s: corrupted ELF file (wrong shstrtab.sh_offset)\n", woody->woody_name);
+			exit_clean(woody, EXIT_FAILURE);
+		}
+		end_of_str = memchr(woody->bin_map + woody->shstrtab.sh_offset, 0, (size_t)woody->bin_st.st_size - woody->shstrtab.sh_offset);
+		if (!end_of_str) {
+			dprintf(STDERR_FILENO, "%s: corrupted ELF file (wrong sh_name offset)\n", woody->woody_name);
+			exit_clean(woody, EXIT_FAILURE);
+		}
 		if (ft_strcmp(section_name, woody->bin_map + woody->shstrtab.sh_offset + tmp.sh_name) == 0)
 			return (i);
 	}
@@ -106,7 +117,11 @@ void		insert_section_after_bss(struct s_woody *woody) {
 		exit_clean(woody, EXIT_FAILURE);
 	}
 	read_section_header(woody, index_shdr_text, &shdr_text);
-
+	// Check if old entrypoint + size .text are valid
+	if (shdr_text.sh_offset + shdr_text.sh_size > (size_t)woody->bin_st.st_size) {
+		dprintf(STDERR_FILENO, "%s: corrupted binary (wrong .text section size)\n", woody->woody_name);
+		exit_clean(woody, EXIT_FAILURE);
+	}
 
 	modify_shdr_last(woody, &shdr_last, index_shdr_last); // Must be done before fill_new_section
 
