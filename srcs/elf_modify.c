@@ -18,6 +18,8 @@ void	modify_shdr_last(struct s_woody *woody, Elf64_Shdr *shdr_last, uint16_t ind
 		else
 			woody->shdr_last_offset_adjustment = 0;
 	}
+	else
+		woody->shdr_last_offset_adjustment = 0;
 }
 
 void	modify_ehdr(struct s_woody *woody) {

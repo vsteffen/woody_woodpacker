@@ -1,11 +1,21 @@
 #include "woody_woodpacker.h"
 
 void	check_headers_offset(struct s_woody *woody) {
+	Elf64_Shdr	tmp_shdr;
+
 	if (woody->ehdr.e_phoff + woody->ehdr.e_phentsize * woody->ehdr.e_phnum > (size_t)woody->bin_st.st_size \
 		|| woody->ehdr.e_shoff + woody->ehdr.e_shentsize * woody->ehdr.e_shnum > (size_t)woody->bin_st.st_size)
 	{
 		dprintf(STDERR_FILENO, "%s: corrupted ELF file\n", woody->woody_name);
 		exit_clean(woody, EXIT_FAILURE);
+	}
+
+	for (uint16_t i = 0; i < woody->ehdr.e_shnum; i++) {
+		read_section_header(woody, i, &tmp_shdr);
+		if ((size_t)tmp_shdr.sh_offset + (tmp_shdr.sh_type == SHT_NOBITS ? 0 : (size_t)tmp_shdr.sh_size) > (size_t)woody->bin_st.st_size) {
+			dprintf(STDERR_FILENO, "%s: corrupted ELF file (wrong section offset or size)\n", woody->woody_name);
+			exit_clean(woody, EXIT_FAILURE);
+		}
 	}
 }
 
@@ -22,19 +32,21 @@ void		get_shstrtab(struct s_woody *woody) {
 uint16_t	get_index_section_with_name(struct s_woody *woody, char *section_name) {
 	Elf64_Shdr	tmp;
 	void		*end_of_str;
+	size_t		offset_name;
 
 	for (uint16_t i = 0; i < woody->ehdr.e_shnum; i++) {
 		read_section_header(woody, i, &tmp);
-		if (woody->shstrtab.sh_offset > (size_t)woody->bin_st.st_size) {
+		offset_name = woody->shstrtab.sh_offset + tmp.sh_name;
+		if (offset_name > (size_t)woody->bin_st.st_size) {
 			dprintf(STDERR_FILENO, "%s: corrupted ELF file (wrong shstrtab.sh_offset)\n", woody->woody_name);
 			exit_clean(woody, EXIT_FAILURE);
 		}
-		end_of_str = memchr(woody->bin_map + woody->shstrtab.sh_offset, 0, (size_t)woody->bin_st.st_size - woody->shstrtab.sh_offset);
+		end_of_str = ft_memchr(woody->bin_map + offset_name, 0, (size_t)woody->bin_st.st_size - offset_name);
 		if (!end_of_str) {
 			dprintf(STDERR_FILENO, "%s: corrupted ELF file (wrong sh_name offset)\n", woody->woody_name);
 			exit_clean(woody, EXIT_FAILURE);
 		}
-		if (ft_strcmp(section_name, woody->bin_map + woody->shstrtab.sh_offset + tmp.sh_name) == 0)
+		if (ft_strcmp(section_name, woody->bin_map + offset_name) == 0)
 			return (i);
 	}
 	return (-1);

@@ -58,6 +58,10 @@ void	read_elf_header(struct s_woody *woody) {
 }
 
 void	read_program_header(struct s_woody *woody, uint16_t index, Elf64_Phdr *phdr) {
+	if (index >= woody->ehdr.e_phentsize) {
+		dprintf(STDERR_FILENO, "%s: wrong index of phdr\n", woody->woody_name);
+		exit_clean(woody, EXIT_FAILURE);
+	}
 	*phdr = *(Elf64_Phdr *)(woody->bin_map + woody->ehdr.e_phoff + woody->ehdr.e_phentsize * index);
 	if (woody->reverse_endian) {
 		phdr->p_type	= BSWAP32(phdr->p_type);
@@ -72,6 +76,10 @@ void	read_program_header(struct s_woody *woody, uint16_t index, Elf64_Phdr *phdr
 }
 
 void	read_section_header(struct s_woody *woody, uint16_t index, Elf64_Shdr *shdr) {
+	if (index >= woody->ehdr.e_shentsize) {
+		dprintf(STDERR_FILENO, "%s: wrong index of shdr\n", woody->woody_name);
+		exit_clean(woody, EXIT_FAILURE);
+	}
 	*shdr = *(Elf64_Shdr *)(woody->bin_map + woody->ehdr.e_shoff + woody->ehdr.e_shentsize * index);
 	if (woody->reverse_endian) {
 		shdr->sh_name		= BSWAP32(shdr->sh_name);
